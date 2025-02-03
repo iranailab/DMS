@@ -17,11 +17,33 @@ class Tag(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True)  # Unique category name
+    title = models.CharField(max_length=200, blank=True)  # Display name
+    description = models.TextField(blank=True, null=True)  # Explanation of category
+    parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)  # Nested categories
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)  # Track updates
+    state = models.CharField(max_length=20, choices=[("active", "Active"), ("deleted", "Deleted")], default="active")
+    image_url = models.URLField(blank=True, null=True)  # Optional image for the category
 
     def __str__(self):
-        return self.name
+        return self.title or self.name
 
+
+class Organization(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True)  # Unique identifier
+    title = models.CharField(max_length=200, blank=True)  # Display name
+    description = models.TextField(blank=True, null=True)  # Description
+    image_url = models.URLField(blank=True, null=True)  # Organization logo
+    website = models.URLField(blank=True, null=True)  # Organization website
+    email = models.EmailField(blank=True, null=True)  # Contact email
+    created = models.DateTimeField(auto_now_add=True)
+    state = models.CharField(max_length=20, choices=[("active", "Active"), ("deleted", "Deleted")], default="active")
+
+    def __str__(self):
+        return self.title or self.name
 
 class Dataset(models.Model):
     

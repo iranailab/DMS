@@ -4,10 +4,16 @@ from django.utils.timezone import now
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    id = models.AutoField(primary_key=True)
+    vocabulary_id = models.CharField(max_length=100, blank=True, null=True)  # Optional reference to a vocabulary
+    display_name = models.CharField(max_length=200)  # Display-friendly name
+    name = models.CharField(max_length=100, unique=True)  # Unique identifier
+    state = models.CharField(max_length=10,
+        choices=[('active', 'Active'), ('deleted', 'Deleted')],
+        default='active')  # Status (e.g., 'active', 'deleted')
 
     def __str__(self):
-        return self.name
+        return self.display_name or self.name
 
 
 class Category(models.Model):

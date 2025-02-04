@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Dataset, Tag, Category, Organization, Resource, License
+from .models import Dataset, Tag, Category, Organization, Resource, License, ResourceFormat
 
 
 class LicenseSerializer(serializers.ModelSerializer):
@@ -41,4 +41,9 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
+        fields = '__all__'
+
+class ResourceFormatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResourceFormat
         fields = '__all__'

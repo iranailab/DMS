@@ -25,6 +25,14 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.display_name or self.name
+    
+
+class ResourceFormat(models.Model):
+    name = models.CharField(max_length=255, unique=True)  # Name of the resource format
+    description = models.TextField(blank=True, null=True)  # Optional description for the resource format
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
@@ -62,6 +70,7 @@ class Dataset(models.Model):
     name = models.CharField(max_length=255, unique=True)  # Unique dataset name 
     title = models.CharField(max_length=255)  # Human-readable title
     description = models.TextField(blank=True, null=True)  # Long text description
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=False, default=1) # The Organization of the dataset
     owner = models.ForeignKey(User, on_delete=models.CASCADE)  # The creator of the dataset
     tags = models.ManyToManyField(Tag, related_name='datasets', blank=True)  # Tags associated with dataset
     category = models.ForeignKey(Category, related_name='datasets', on_delete=models.SET_NULL, null=True, blank=True)  # Category reference
@@ -92,7 +101,7 @@ class Resource(models.Model):
     dataset = models.ForeignKey("Dataset", on_delete=models.CASCADE, related_name="resources")  # Link to Dataset
     name = models.CharField(max_length=255, blank=True)  # Optional name
     description = models.TextField(blank=True, null=True)  # Description of the resource
-    format = models.CharField(max_length=50, blank=True, null=True)  # File format (e.g., CSV, JSON, XML)
+    format = models.ForeignKey(ResourceFormat, on_delete=models.SET_NULL, null=True, blank=True)  # File format (e.g., CSV, JSON, XML)
     url = models.URLField(blank=True, null=True)  # External URL of the resource
     file = models.FileField(upload_to="resources/", blank=True, null=True)  # Local file storage (optional)
     size = models.BigIntegerField(blank=True, null=True)  # File size in bytes
@@ -101,6 +110,6 @@ class Resource(models.Model):
     updated = models.DateTimeField(auto_now=True)  # Track updates
     state = models.CharField(max_length=20, choices=[("active", "Active"), ("deleted", "Deleted")], default="active")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Optional owner
-
+    
     def __str__(self):
         return self.name or f"Resource {self.id}"

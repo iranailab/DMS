@@ -125,3 +125,21 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.organization.name} ({self.role})"
+    
+
+class Tracking(models.Model):
+    TRACKING_TYPES = [
+        ('view', 'View'),
+        ('download', 'Download'),
+        ('api_call', 'API Call'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Track user if logged in
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, null=True, blank=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    tracking_type = models.CharField(max_length=10, choices=TRACKING_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tracking_type} - {self.dataset or self.organization or self.category}"

@@ -1,7 +1,11 @@
 from django.shortcuts import render
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework import viewsets, permissions
-from .models import Dataset, Tag, Category, Organization, Resource, License, Membership
-from .serializers import MembershipSerializer, DatasetSerializer, TagSerializer, CategorySerializer, OrganizationSerializer, ResourceSerializer, LicenseSerializer, ResourceFormatSerializer
+
+from .models import Dataset, Tag, Category, Organization, Resource, License, Membership, Tracking
+from .serializers import TrackingSerializer, MembershipSerializer, DatasetSerializer, TagSerializer, CategorySerializer, OrganizationSerializer, ResourceSerializer, LicenseSerializer, ResourceFormatSerializer
 
 
 class LicenseViewSet(viewsets.ModelViewSet):
@@ -60,3 +64,34 @@ class MembershipViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Allow users to see only their own memberships."""
         return Membership.objects.filter(user=self.request.user)
+    
+
+class TrackingViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tracking.objects.all()
+    serializer_class = TrackingSerializer
+    
+
+@api_view(['GET'])
+def track_dataset_view(request, dataset_id):
+    dataset = Dataset.objects.get(id=dataset_id)
+    Tracking.objects.create(user=request.user if request.user.is_authenticated else None, dataset=dataset, tracking_type='view')
+    return Response({"message": "Dataset view tracked."})
+
+
+@api_view(['GET'])
+def track_dataset_download(request, dataset_id):
+    dataset = Dataset.objects.get(id=dataset_id)
+    Tracking.objects.create(user=request.user if request.user.is_authenticated else None, dataset=dataset, tracking_type='download')
+    return Response({"message": "Dataset download tracked."})
+
+@api_view(['GET'])
+def track_organization_view(request, organization_id):
+    organization = Organization.objects.get(id=organization_id)
+    Tracking.objects.create(user=request.user if request.user.is_authenticated else None, organization=organization, tracking_type='view')
+    return Response({"message": "Organization view tracked."})
+
+@api_view(['GET'])
+def track_category_view(request, category_id):
+    category = Category.objects.get(id=category_id)
+    Tracking.objects.create(user=request.user if request.user.is_authenticated else None, category=category, tracking_type='view')
+    return Response({"message": "Category view tracked."})

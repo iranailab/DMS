@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Dataset, Tag, Category, Organization, Resource, License, ResourceFormat, Membership
+
+from .models import Dataset, Tag, Category, Organization, Resource, License, ResourceFormat, Membership, Tracking
 from django.contrib.auth.models import User
 
 
@@ -31,6 +32,12 @@ class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
         fields = '__all__'
+
+
+class TrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tracking
+        fields = ['tracking_type', 'dataset', 'organization', 'category', 'timestamp']
 
 
 class DatasetSerializer(serializers.ModelSerializer):

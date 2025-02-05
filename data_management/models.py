@@ -70,7 +70,7 @@ class Dataset(models.Model):
     name = models.CharField(max_length=255, unique=True)  # Unique dataset name 
     title = models.CharField(max_length=255)  # Human-readable title
     description = models.TextField(blank=True, null=True)  # Long text description
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=False, default=1) # The Organization of the dataset
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE) # The Organization of the dataset
     owner = models.ForeignKey(User, on_delete=models.CASCADE)  # The creator of the dataset
     tags = models.ManyToManyField(Tag, related_name='datasets', blank=True)  # Tags associated with dataset
     category = models.ForeignKey(Category, related_name='datasets', on_delete=models.SET_NULL, null=True, blank=True)  # Category reference
@@ -79,12 +79,7 @@ class Dataset(models.Model):
     updated = models.DateTimeField(auto_now=True)  # Auto-set on update
     version = models.CharField(max_length=50, blank=True, null=True)  # Dataset version
     license = models.ForeignKey(License, on_delete=models.SET_NULL, null=True, blank=True)  # License type
-    visibility = models.CharField(
-        max_length=10,
-        choices=[('public', 'Public'), ('private', 'Private')],
-        default='private'
-    )  # Public/private dataset
-
+    private = models.BooleanField(default=False)  # Public by default
     author = models.CharField(max_length=255, blank=True, null=True)  # Author name
     author_email = models.EmailField(blank=True, null=True)  # Author contact
     maintainer = models.CharField(max_length=255, blank=True, null=True)  # Maintainer name
@@ -113,3 +108,20 @@ class Resource(models.Model):
     
     def __str__(self):
         return self.name or f"Resource {self.id}"
+    
+
+class Membership(models.Model):
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('member', 'Member'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    class Meta:
+        unique_together = ('user', 'organization')  # Prevent duplicate memberships
+
+    def __str__(self):
+        return f"{self.user.username} - {self.organization.name} ({self.role})"

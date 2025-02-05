@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Dataset, Tag, Category, Organization, Resource, License, ResourceFormat
+from .models import Dataset, Tag, Category, Organization, Resource, License, ResourceFormat, Membership
+from django.contrib.auth.models import User
 
 
 class LicenseSerializer(serializers.ModelSerializer):
@@ -43,7 +44,46 @@ class DatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = '__all__'
 
+    def validate_organization(self, value):
+        """Ensure the user is a member of the selected organization."""
+        user = self.context['request'].user
+        if not Membership.objects.filter(user=user, organization=value).exists():
+            raise serializers.ValidationError("You are not a member of this organization.")
+        return value
+    
+    def to_representation(self, instance):
+        """Customize response to show only user's organizations when creating a dataset."""
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user_organizations = Organization.objects.filter(membership__user=request.user)
+            data['available_organizations'] = [
+                {"id": org.id, "name": org.name} for org in user_organizations
+            ]
+        return data
+
 class ResourceFormatSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResourceFormat
         fields = '__all__'
+
+
+class MembershipSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    organization = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all())
+
+    class Meta:
+        model = Membership
+        fields = '__all__'
+
+    def validate(self, data):
+        """Ensure only organization owners can add new members."""
+        request = self.context['request']
+        user = request.user
+        organization = data['organization']
+
+        # Check if the requesting user is an owner of the organization
+        if not Membership.objects.filter(user=user, organization=organization, role='owner').exists():
+            raise serializers.ValidationError("Only organization owners can add members.")
+        
+        return data

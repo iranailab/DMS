@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions
+from django.db.models import Q
 
 from .models import Dataset, Tag, Category, Organization, Resource, License, Membership, Tracking
 from .serializers import TrackingSerializer, MembershipSerializer, DatasetSerializer, TagSerializer, CategorySerializer, OrganizationSerializer, ResourceSerializer, LicenseSerializer, ResourceFormatSerializer
@@ -48,7 +49,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_authenticated:
             user_organizations = Organization.objects.filter(membership__user=user)
-            return Dataset.objects.filter(models.Q(private=False) | models.Q(organization__in=user_organizations))
+            return Dataset.objects.filter(Q(private=False) | Q(organization__in=user_organizations))
         return Dataset.objects.filter(private=False)  # Anonymous users see only public datasets
 
 class ResourceFormatViewSet(viewsets.ModelViewSet):

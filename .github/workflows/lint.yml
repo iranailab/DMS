@@ -28,4 +28,4 @@ jobs:
 
       - name: Run Ruff linter
         run: |
-          ruff .
+          ruff check . --fix                               
